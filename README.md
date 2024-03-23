@@ -1,2 +1,2 @@
 # r34-comment-uploads
-todo
+Uploads every Friday.
