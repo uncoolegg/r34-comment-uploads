@@ -1,0 +1,47 @@
+name: Cleanup Routine
+
+on:
+  schedule:
+    - cron: 0 0 * * 6
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete old files
+        run: |
+          TARGET_DIR="exports"
+          CUTOFF_DATE=$(date -d "30 days ago" +%s)
+
+          echo "Searching 30-day-old files in $TARGET_DIR"
+
+          find "$TARGET_DIR" -type f | while read -r file; do
+            LAST_COMMIT_DATE=$(git log -1 --format="%at" -- "$file")
+
+            if [ -z "$LAST_COMMIT_DATE" ]; then
+              continue
+            fi
+
+            if [ "LAST_COMMIT_DATE" -lt "$CUTOFF_DATE" ]; then
+              echo "Deleting older file $file"
+              git rm "$file"
+            fi
+          done
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: automated cleanup"
+            git push
+          else
+            echo "No files found to clean"
+          fi
