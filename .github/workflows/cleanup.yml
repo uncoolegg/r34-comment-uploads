@@ -28,7 +28,7 @@ jobs:
               continue
             fi
 
-            if [ "LAST_COMMIT_DATE" -lt "$CUTOFF_DATE" ]; then
+            if [ "$LAST_COMMIT_DATE" -lt "$CUTOFF_DATE" ]; then
               echo "Deleting older file $file"
               git rm "$file"
             fi
